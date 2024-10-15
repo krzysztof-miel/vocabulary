@@ -49,7 +49,11 @@ public class GptClient {
 
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            log.info("GPT JSON generated");
+
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            log.info("Response: " + statusCode);
+
             return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         }
     }
