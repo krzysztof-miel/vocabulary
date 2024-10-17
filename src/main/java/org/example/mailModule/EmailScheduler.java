@@ -1,50 +1,38 @@
 package org.example.mailModule;
 
 
+import org.example.job.EmailJob;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class EmailScheduler {
 
-    public static long getInitialDelay(LocalTime targetTime) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextRun = now.with(targetTime);
+    private static final Logger log = LoggerFactory.getLogger(EmailScheduler.class);
 
-        if (now.isAfter(nextRun)) {
-            nextRun = nextRun.plusDays(1);
+    public static void startScheduler() {
+        try {
+            SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+            Scheduler scheduler = schedulerFactory.getScheduler();
+
+            JobDetail jobDetail = JobBuilder.newJob(EmailJob.class)
+                    .withIdentity("emailJob", "group1")
+                    .build();
+
+            Trigger trigger = TriggerBuilder.newTrigger()
+                    .withIdentity("emailTrigger", "group1")
+                    .withSchedule(CronScheduleBuilder.cronSchedule("0 0 6 * * ?"))
+                    .build();
+
+            scheduler.scheduleJob(jobDetail, trigger);
+            scheduler.start();
+            log.info("Scheduler started successfully.");
+        } catch (SchedulerException e) {
+            log.error("Error starting scheduler: ", e);
         }
-
-        return Duration.between(now, nextRun).toMinutes();
     }
 
-    public static void scheduleDailyEmail(Runnable emailTask, LocalTime targetTime) {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        long initialDelay = getInitialDelay(targetTime);
-        long period = TimeUnit.DAYS.toMillis(1);
-
-        scheduler.scheduleAtFixedRate(emailTask, initialDelay, period, TimeUnit.MINUTES);
-        log.info("Task scheduled to run daily at " + targetTime);
-    }
-
-    public static LocalDateTime calculateNextRun(LocalTime targetTime) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextRun = now.with(targetTime);
-
-        if (now.isAfter(nextRun)) {
-            nextRun = nextRun.plusDays(1);
-        }
-
-        return nextRun;
-    }
 
 }

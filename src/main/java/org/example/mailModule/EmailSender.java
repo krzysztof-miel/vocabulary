@@ -1,6 +1,7 @@
 package org.example.mailModule;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
@@ -8,10 +9,10 @@ import jakarta.mail.internet.MimeMessage;
 import org.example.config.EnvLoader;
 
 import java.util.Properties;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class EmailSender {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
 
     private static Session createSession() {
 
@@ -24,6 +25,9 @@ public class EmailSender {
         properties.put("mail.smtp.starttls.enable", "true");
         properties.put("mail.smtp.host", host);
         properties.put("mail.smtp.port", "587");
+
+        log.info("Creating email session for: {}", from);
+
 
         return Session.getInstance(properties, new Authenticator() {
             @Override
@@ -45,6 +49,7 @@ public class EmailSender {
             message.setSubject(subject);
             message.setText(content);
 
+            log.info("Sending email to: {}", to);
             Transport.send(message);
             log.info("Email sent successfully to {}", to);
 

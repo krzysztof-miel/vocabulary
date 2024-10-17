@@ -15,22 +15,24 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class GptClient {
     private static final String OPEN_AI_URL = EnvLoader.getApiUrl();
     private static final String OPEN_AI_KEY = EnvLoader.getApiKey();
     private final CloseableHttpClient httpClient = HttpClients.createDefault();
+    private static final Logger log = LoggerFactory.getLogger(GptClient.class);
+
 
     public String getResponseJson(String prompt) throws IOException {
 
         URL url;
         try {
             url = new URL(OPEN_AI_URL);
-            log.info("URL created correctly");
+            log.info("URL created correctly: {}", OPEN_AI_URL);
         } catch (MalformedURLException e) {
-            log.info("Invalid URL");
+            log.error("Invalid URL: {}", OPEN_AI_URL, e);
             throw new IllegalArgumentException("Invalid URL: " + OPEN_AI_URL, e);
         }
 
@@ -49,17 +51,27 @@ public class GptClient {
 
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-
             int statusCode = response.getStatusLine().getStatusCode();
+            log.info("Response received from OpenAI API. Status code: {}", statusCode);
 
-            log.info("Response: " + statusCode);
+            if (statusCode != 200) {
+                log.warn("Non-OK response received: {}", statusCode);
+            }
 
-            return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            log.debug("Response body: {}", responseBody);
+
+            return responseBody;
+        } catch (IOException e) {
+            log.error("Error while executing request to OpenAI API", e);
+            throw e;
         }
     }
 
 
     public String getResponse(String prompt) throws IOException {
+
+        log.info("Fetching GPT response ");
 
         String responseBody = getResponseJson(prompt);
 
@@ -68,8 +80,7 @@ public class GptClient {
 
         String content = rootNode.path("choices").get(0).path("message").path("content").asText();
 
-        log.info("Formatted GPT response");
-        log.info("Email content: \n" + content );
+        log.info("GPT response successfully extracted and formatted");
 
         return content;
     }
