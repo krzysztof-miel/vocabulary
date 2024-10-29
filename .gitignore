@@ -20,3 +20,5 @@ target/
 # Env
 .env
 
+### Docker .tar ###
+vocabulary-app.tar

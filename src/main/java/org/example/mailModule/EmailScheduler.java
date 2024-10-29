@@ -28,7 +28,9 @@ public class EmailScheduler {
 
             scheduler.scheduleJob(jobDetail, trigger);
             scheduler.start();
-            log.info("Scheduler started successfully.");
+            log.info("First email scheduled to be sent at: {}", trigger.getNextFireTime());
+
+
         } catch (SchedulerException e) {
             log.error("Error starting scheduler: ", e);
         }

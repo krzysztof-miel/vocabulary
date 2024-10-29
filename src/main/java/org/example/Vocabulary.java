@@ -1,10 +1,7 @@
 package org.example;
 
-import org.example.gptClient.GptClient;
-import org.example.gptClient.Prompt;
+import org.example.config.LoggerLevelConfig;
 import org.example.mailModule.EmailScheduler;
-import org.example.mailModule.EmailSender;
-import org.example.config.EnvLoader;
 
 import java.io.IOException;
 import org.slf4j.Logger;
@@ -16,7 +13,10 @@ public class Vocabulary {
 
     public static void main(String[] args) throws IOException {
 
-        log.info("Application started.");
+        String logLevel = System.getenv("LOG_LEVEL");
+        System.out.println("Application started with log level: " + logLevel);
+
+        LoggerLevelConfig.displayCurrentLogLevel();
 
         EmailScheduler.startScheduler();
 

@@ -1,7 +1,8 @@
 package org.example.job;
 
-import org.example.Vocabulary;
+
 import org.example.config.EnvLoader;
+import org.example.config.MemoryLogger;
 import org.example.gptClient.GptClient;
 import org.example.gptClient.Prompt;
 import org.example.mailModule.EmailSender;
@@ -31,6 +32,8 @@ public class EmailJob implements Job {
             response = client.getResponse(Prompt.prompt);
             log.debug("Received response from GPT API: \n {}", response);
             EmailSender.sendEmail(recipient, subject, response);
+            log.info("Next email scheduled to be sent at: {}", context.getTrigger().getNextFireTime());
+            MemoryLogger.logMemoryUsage();
         } catch (IOException e) {
             log.error("Error while sending email: {}", e.getMessage(), e);
         }
